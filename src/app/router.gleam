@@ -1,12 +1,13 @@
-import wisp.{type Request, type Response}
-import gleam/http
 import app/web
+import wisp.{type Request, type Response}
+
+import app/image/handler as image_handler
 
 pub fn handle_request(req: Request) -> Response {
   use req <- web.middleware(req)
 
-  case req.method, wisp.path_segments(req) {
-    http.Get, _ -> wisp.json_response("{ \"path\": \"" <> req.path <> "\"}", 200)
-    _, _ -> wisp.not_found()
+  case wisp.path_segments(req) {
+    ["image"] -> image_handler.handle_request(req)
+    _ -> wisp.json_response("{ \"path\": \"" <> req.path <> "\"}", 501)
   }
 }
