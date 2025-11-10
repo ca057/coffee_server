@@ -1,12 +1,12 @@
-import gleam/result
 import envoy
+import gleam/result
 
 pub type Key {
-  Host
+  Interface
 }
 
-pub fn get(key: Key) -> String {
+pub fn get(key: Key) {
   case key {
-    Host -> result.lazy_unwrap(envoy.get("HOST"), fn() { "localhost" })
+    Interface -> result.unwrap(envoy.get("INTERFACE"), "localhost")
   }
 }
