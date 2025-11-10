@@ -1,3 +1,4 @@
+import app/core/environment
 import gleam/erlang/process
 import gleam/io
 import mist
@@ -15,6 +16,7 @@ pub fn main() -> Nil {
   let assert Ok(_) =
     wisp_mist.handler(router.handle_request, secret_key_base)
     |> mist.new
+    |> mist.bind(environment.get(environment.Host))
     |> mist.port(7000)
     |> mist.start
 

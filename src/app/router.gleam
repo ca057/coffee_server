@@ -1,7 +1,7 @@
 import app/web
 import wisp.{type Request, type Response}
 
-import app/image/handler as image_handler
+import app/features/image/handler as image_handler
 
 pub fn handle_request(req: Request) -> Response {
   use req <- web.middleware(req)
