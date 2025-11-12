@@ -11,7 +11,7 @@ pub fn handle_request(req: Request) -> Response {
     ["image"] -> image_handler.handle_request(req)
     _ ->
       wisp.json_response(
-        web.build_error_response_body(req.path <> " not found")
+        web.build_error_res_body(req.path <> " not found")
           |> json.to_string,
         404,
       )

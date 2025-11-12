@@ -14,6 +14,6 @@ pub fn middleware(
   handle_request(req)
 }
 
-pub fn build_error_response_body(message: String) -> json.Json {
+pub fn build_error_res_body(message: String) -> json.Json {
   json.object([#("error", json.string(message))])
 }
