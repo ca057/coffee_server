@@ -1,3 +1,4 @@
+import gleam/json
 import wisp
 
 pub fn middleware(
@@ -11,4 +12,8 @@ pub fn middleware(
   use req <- wisp.csrf_known_header_protection(req)
 
   handle_request(req)
+}
+
+pub fn build_error_response_body(message: String) -> json.Json {
+  json.object([#("error", json.string(message))])
 }
