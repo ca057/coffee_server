@@ -10,8 +10,9 @@ pub fn handle_request(req: Request) -> Response {
     api_key.new(environment.get(environment.ApiKey)),
   )
 
-  web.respond_with_error(
-    http.method_to_string(req.method) <> ": not implemented",
-    501,
-  )
+  case req.method, wisp.path_segments(req) {
+    // TODO: find a better structure
+    http.Put, ["images"] -> wisp.json_response("", 200)
+    _, _ -> web.respond_with_error("not found", 404)
+  }
 }

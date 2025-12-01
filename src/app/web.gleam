@@ -1,5 +1,4 @@
 import app/core/api_key
-import gleam/io
 import gleam/json
 import gleam/list
 import gleam/result
@@ -21,7 +20,8 @@ pub fn middleware(
 
 pub fn respond_with_error(error_message: String, code: Int) -> wisp.Response {
   wisp.json_response(
-    build_error_res_body(error_message) |> json.to_string,
+    json.object([#("error", json.string(error_message))])
+      |> json.to_string,
     code,
   )
 }
@@ -37,7 +37,7 @@ pub fn require_api_key_middleware(
     })
     |> result.map(fn(auth_header) {
       let extracted_key =
-        string.drop_start(auth_header.1, string.length("Bearer: "))
+        string.drop_start(auth_header.1, string.length("Bearer "))
 
       case api_key.is_same_string(required_api_key, extracted_key) {
         True -> Ok(required_api_key)
@@ -52,8 +52,4 @@ pub fn require_api_key_middleware(
     }
     Error(_) -> respond_with_error("unauthenticated", 401)
   }
-}
-
-pub fn build_error_res_body(message: String) -> json.Json {
-  json.object([#("error", json.string(message))])
 }

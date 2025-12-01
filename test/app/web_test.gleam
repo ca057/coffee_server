@@ -16,8 +16,8 @@ pub fn require_api_key_middleware_test() {
   // responds unauthenticated when other api key is passed in
   let unauthenticated_response =
     web.require_api_key_middleware(
-      simulate.header(request, "authorization", "Bearer: some invalid api key"),
-      api_key.new("expected api key"),
+      simulate.header(request, "authorization", "Bearer some_invalid_api_key"),
+      api_key.new("expected_api_key"),
       fn(_, _) { wisp.ok() },
     )
   // TODO: compary body
@@ -25,10 +25,10 @@ pub fn require_api_key_middleware_test() {
 
   // ---
   // handles request when expected API key is passed in
-  let expected_api_key = "expected api key"
+  let expected_api_key = "expected_api_key"
   let authenticated_response =
     web.require_api_key_middleware(
-      simulate.header(request, "authorization", "Bearer: " <> expected_api_key),
+      simulate.header(request, "authorization", "Bearer " <> expected_api_key),
       api_key.new(expected_api_key),
       fn(_, _) { wisp.ok() },
     )
