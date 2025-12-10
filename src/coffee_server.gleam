@@ -1,6 +1,8 @@
 import app/core/environment
 import gleam/erlang/process
+import gleam/int
 import gleam/io
+import gleam/result
 import mist
 import wisp
 import wisp/wisp_mist
@@ -17,7 +19,9 @@ pub fn main() -> Nil {
     wisp_mist.handler(router.handle_request, secret_key_base)
     |> mist.new
     |> mist.bind(environment.get(environment.Interface))
-    |> mist.port(7000)
+    |> mist.port(
+      int.parse(environment.get(environment.Port)) |> result.unwrap(8080),
+    )
     |> mist.start
 
   process.sleep_forever()
