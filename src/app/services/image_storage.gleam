@@ -1,0 +1,55 @@
+import gleam/result
+import gleam/string
+import simplifile
+
+pub type StoredImage {
+  StoredImage(full_path: String, file_name: String)
+}
+
+// TODO: error handling and logging!
+
+pub fn copy_file_to_app(
+  source temp_source: String,
+  file_name file_name: String,
+  // TODO: return custom type
+) -> Result(String, Nil) {
+  let app_dir = get_app_dir()
+
+  let path = case simplifile.is_directory(app_dir) {
+    Ok(True) -> Ok(app_dir)
+    _ -> {
+      // TODO: separate errors
+      case simplifile.create_directory_all(app_dir) {
+        Ok(_) -> Ok(app_dir)
+        Error(err) ->
+          Error("Failed to create app_dir: " <> simplifile.describe_error(err))
+      }
+    }
+  }
+
+  case path {
+    Ok(path) -> {
+      let final_path = join_paths(path, file_name)
+
+      simplifile.copy_file(temp_source, final_path)
+      |> result.map(fn(_) { final_path })
+      |> result.map_error(fn(_) { Nil })
+    }
+    Error(_) -> Error(Nil)
+  }
+}
+
+fn get_app_dir() -> String {
+  "local/unprocessed_images"
+}
+
+fn join_paths(a: String, b: String) -> String {
+  let trimmed_b = case b {
+    "/" <> r -> r
+    _ -> b
+  }
+  case string.ends_with(a, "/") {
+    True -> a <> trimmed_b
+    False -> a <> "/" <> trimmed_b
+  }
+}

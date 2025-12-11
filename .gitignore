@@ -3,3 +3,6 @@
 .DS_Store
 /build
 erl_crash.dump
+
+# local development
+local/

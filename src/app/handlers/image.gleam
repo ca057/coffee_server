@@ -1,5 +1,6 @@
 import app/core/api_key
 import app/core/environment
+import app/services/image_storage
 import app/web
 import gleam/http
 import gleam/list
@@ -24,8 +25,12 @@ fn handle_image_upload(req: Request) -> Response {
 
   let result = {
     use file <- result.try(list.key_find(formdata.files, "image"))
+    use path <- result.try(image_storage.copy_file_to_app(
+      source: file.path,
+      file_name: file.file_name,
+    ))
 
-    wisp.log_info("file uploaded to " <> file.path)
+    wisp.log_info("file uploaded to " <> path)
 
     Ok(file.file_name)
   }
