@@ -8,7 +8,7 @@ pub type StoredImage {
 
 // TODO: error handling and logging!
 
-pub fn copy_file_to_app(
+pub fn store_image(
   source temp_source: String,
   file_name file_name: String,
   // TODO: return custom type

@@ -25,7 +25,7 @@ fn handle_image_upload(req: Request) -> Response {
 
   let result = {
     use file <- result.try(list.key_find(formdata.files, "image"))
-    use path <- result.try(image_storage.copy_file_to_app(
+    use path <- result.try(image_storage.store_image(
       source: file.path,
       file_name: file.file_name,
     ))
