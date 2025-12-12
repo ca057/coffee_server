@@ -1,4 +1,4 @@
-import app/image_transform_actor
+import app/internal/image_transform_actor
 import app/web
 import gleam/erlang/process
 import wisp.{type Request, type Response}

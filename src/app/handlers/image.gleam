@@ -1,7 +1,7 @@
 import app/core/api_key
 import app/core/environment
-import app/image_transform_actor
-import app/services/image_storage
+import app/internal/image_storage
+import app/internal/image_transform_actor
 import app/web
 import gleam/erlang/process
 import gleam/http

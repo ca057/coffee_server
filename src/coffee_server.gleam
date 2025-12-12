@@ -1,4 +1,4 @@
-import app/image_transform_actor
+import app/internal/image_transform_actor
 
 import app/core/environment
 import gleam/erlang/process
