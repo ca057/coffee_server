@@ -10,6 +10,7 @@ pub type StoredImage {
 
 pub fn store_image(
   source temp_source: String,
+  // TODO: add destination
   file_name file_name: String,
   // TODO: return custom type
 ) -> Result(String, Nil) {
