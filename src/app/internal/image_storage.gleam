@@ -7,7 +7,7 @@ pub type StoredImage {
 }
 
 // TODO: error handling and logging!
-
+// TODO: store_image_if_not_exists
 pub fn store_image(
   source temp_source: String,
   // TODO: add destination
