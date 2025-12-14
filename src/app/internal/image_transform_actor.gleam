@@ -34,6 +34,7 @@ fn process_image(images: List(String), message: ProcessImageMessage) {
           |> result.try(image.scale(_, scale))
           |> result.try(image.write(
             _,
+            // TODO: fixme to the proper path
             "local/" <> "transformed_image.jpeg",
             image.JPEG(100, True),
           ))
