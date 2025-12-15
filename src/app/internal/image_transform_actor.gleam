@@ -27,6 +27,8 @@ fn extract_file_name_without_extension(path: String) -> Result(String, Nil) {
 // TODO: figure out how to overwrite the snag errors and get rid of them
 // TODO: remove the case and make use of use
 // TODO: proper file name based on EXIF data, add function to ensure that directory exists
+// TODO: remove metadata / exif data from final image
+// TODO: upload image to CDN in separate actor?
 fn process_image(images: List(String), message: ProcessImageMessage) {
   let _ = case message {
     TransformImage(image_path) -> {
@@ -71,6 +73,7 @@ fn process_image(images: List(String), message: ProcessImageMessage) {
       }
     }
   }
+  // TODO: act on result -> in case of error send a notification
   actor.continue(images)
 }
 
