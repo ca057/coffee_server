@@ -24,56 +24,64 @@ fn extract_file_name_without_extension(path: String) -> Result(String, Nil) {
   })
 }
 
-// TODO: figure out how to overwrite the snag errors and get rid of them
+fn map_snag_to_string(r: Result(a, snag.Snag)) -> Result(a, String) {
+  result.map_error(r, fn(e) { e.issue })
+}
+
+fn map_error_to_string(
+  message: String,
+) -> fn(Result(a, Nil)) -> Result(a, String) {
+  fn(a) { result.map_error(a, fn(_) { message }) }
+}
+
 // TODO: remove the case and make use of use
 // TODO: proper file name based on EXIF data, add function to ensure that directory exists
 // TODO: remove metadata / exif data from final image
 // TODO: upload image to CDN in separate actor?
 fn process_image(images: List(String), message: ProcessImageMessage) {
-  let _ = case message {
+  let result = case message {
     TransformImage(image_path) -> {
       io.println("TransformImage (received): " <> image_path)
 
-      use input_image <- result.try(image.read(image_path))
+      use input_image <- result.try(map_snag_to_string(image.read(image_path)))
       let width = image.get_width(input_image)
-      let height = image.get_height(input_image)
 
-      case
-        int.divide(height - width, 2),
-        float.divide(int.to_float(300), int.to_float(width)),
+      use bounds <- result.try(
+        int.divide(image.get_height(input_image) - width, 2)
+        |> map_error_to_string("error when calculating top of bounding box")
+        |> result.try(fn(t) {
+          map_snag_to_string(bounding_box.ltwh(0, t, width, width))
+        }),
+      )
+      use scale <- result.try(
+        float.divide(int.to_float(300), int.to_float(width))
+        |> map_error_to_string("error when calculating scaling factor"),
+      )
+      use file_name <- result.try(
         extract_file_name_without_extension(image_path)
-      {
-        Ok(top), Ok(scale), Ok(file_name) -> {
-          use bounds <- result.try(bounding_box.ltwh(0, top, width, width))
+        |> map_error_to_string("error when extracting file name"),
+      )
 
-          image.extract_area(input_image, bounds)
-          |> result.try(image.scale(_, scale))
-          |> result.try(image.write(
-            _,
-            "local/processed_images/" <> file_name,
-            image.JPEG(100, True),
-          ))
-          |> result.try(fn(i) {
-            wisp.log_info("TransformImage (finished): " <> i)
-            Ok(i)
-          })
-          |> result.try_recover(fn(error) {
-            wisp.log_error("TransformImage (failed): " <> error.issue)
-            Error(error)
-          })
-        }
-        _, _, _ -> {
-          wisp.log_error(
-            "TransformImage (failed): error when calculating the bounding box or scale factor",
-          )
-          Error(snag.new(
-            "error when calculating the bounding box or scale factor",
-          ))
-        }
-      }
+      let final_path = "local/processed_images/" <> file_name
+
+      map_snag_to_string(image.extract_area(input_image, bounds))
+      |> result.try(fn(i) { map_snag_to_string(image.scale(i, scale)) })
+      |> result.try(fn(i) {
+        map_snag_to_string(image.write(i, final_path, image.JPEG(100, True)))
+      })
     }
   }
-  // TODO: act on result -> in case of error send a notification
+
+  case result {
+    Ok(r) -> {
+      wisp.log_info("TransformImage (finished): " <> r)
+    }
+    Error(error) -> {
+      // TODO: act on result -> in case of error send a notification
+      wisp.log_error("TransformImage (failed): " <> error)
+    }
+  }
+
   actor.continue(images)
 }
 
