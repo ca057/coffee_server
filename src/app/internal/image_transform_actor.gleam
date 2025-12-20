@@ -5,23 +5,16 @@ import gleam/float
 import gleam/int
 import gleam/io
 import gleam/list
+import gleam/option
 import gleam/otp/actor
 import gleam/result
 import gleam/string
+import glexif
 import snag
 import wisp
 
 pub type ProcessImageMessage {
   TransformImage(String)
-}
-
-fn extract_file_name_without_extension(path: String) -> Result(String, Nil) {
-  string.split(path, "/")
-  |> list.last
-  |> result.try(fn(file_name) {
-    string.split(file_name, ".")
-    |> list.first
-  })
 }
 
 fn map_snag_to_string(r: Result(a, snag.Snag)) -> Result(a, String) {
@@ -34,7 +27,24 @@ fn map_error_to_string(
   fn(a) { result.map_error(a, fn(_) { message }) }
 }
 
-// TODO: proper file name based on EXIF data, add function to ensure that directory exists
+fn get_compact_date_for_image(path: String) -> Result(String, String) {
+  case glexif.get_exif_data_for_file(path).date_time_original {
+    option.Some(date_time) ->
+      string.split(date_time, " ")
+      |> list.first
+      |> result.try(fn(date) { Ok(string.concat(string.split(date, ":"))) })
+      |> map_error_to_string(
+        "failed to constract date in ISO format for image at path: " <> path,
+      )
+    _ ->
+      Error(
+        "failed to extract date_time_original from image at given path: "
+        <> path,
+      )
+  }
+}
+
+// TODO: add function to ensure that directory exists
 // TODO: remove metadata / exif data from final image
 // TODO: upload image to CDN in separate actor?
 fn process_image(images: List(String), message: ProcessImageMessage) {
@@ -57,8 +67,9 @@ fn process_image(images: List(String), message: ProcessImageMessage) {
         |> map_error_to_string("error when calculating scaling factor"),
       )
       use file_name <- result.try(
-        extract_file_name_without_extension(image_path)
-        |> map_error_to_string("error when extracting file name"),
+        get_compact_date_for_image(image_path)
+        // TODO: we need the count of the day to construct the full path
+        |> result.try(fn(date_time) { Ok(date_time <> "0") }),
       )
 
       let final_path = "local/processed_images/" <> file_name
