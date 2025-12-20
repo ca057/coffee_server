@@ -34,7 +34,6 @@ fn map_error_to_string(
   fn(a) { result.map_error(a, fn(_) { message }) }
 }
 
-// TODO: remove the case and make use of use
 // TODO: proper file name based on EXIF data, add function to ensure that directory exists
 // TODO: remove metadata / exif data from final image
 // TODO: upload image to CDN in separate actor?
