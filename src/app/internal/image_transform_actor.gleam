@@ -45,7 +45,7 @@ fn get_compact_date_for_image(path: String) -> Result(String, String) {
   }
 }
 
-// TODO: remove metadata / exif data from final image
+// TODO: add author back to image metadata
 // TODO: upload image to CDN in separate actor?
 fn process_image(images: List(String), message: ProcessImageMessage) {
   let output_dir = "local/processed_images"
@@ -87,7 +87,7 @@ fn process_image(images: List(String), message: ProcessImageMessage) {
         map_snag_to_string(image.write(
           i,
           output_dir <> "/" <> file_name,
-          image.JPEG(100, True),
+          image.JPEG(100, False),
         ))
       })
     }
