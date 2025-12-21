@@ -1,2 +1,4 @@
-elixir 1.19.2
-gleam 1.13.0
+elixir    1.19.2
+gleam     1.13.0
+just      1.45.0
+watchexec 2.3.0
