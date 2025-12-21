@@ -10,6 +10,7 @@ import gleam/otp/actor
 import gleam/result
 import gleam/string
 import glexif
+import simplifile
 import snag
 import wisp
 
@@ -21,9 +22,9 @@ fn map_snag_to_string(r: Result(a, snag.Snag)) -> Result(a, String) {
   result.map_error(r, fn(e) { e.issue })
 }
 
-fn map_error_to_string(
+fn overwrite_error_with_string(
   message: String,
-) -> fn(Result(a, Nil)) -> Result(a, String) {
+) -> fn(Result(a, b)) -> Result(a, String) {
   fn(a) { result.map_error(a, fn(_) { message }) }
 }
 
@@ -33,7 +34,7 @@ fn get_compact_date_for_image(path: String) -> Result(String, String) {
       string.split(date_time, " ")
       |> list.first
       |> result.try(fn(date) { Ok(string.concat(string.split(date, ":"))) })
-      |> map_error_to_string(
+      |> overwrite_error_with_string(
         "failed to constract date in ISO format for image at path: " <> path,
       )
     _ ->
@@ -44,27 +45,35 @@ fn get_compact_date_for_image(path: String) -> Result(String, String) {
   }
 }
 
-// TODO: add function to ensure that directory exists
 // TODO: remove metadata / exif data from final image
 // TODO: upload image to CDN in separate actor?
 fn process_image(images: List(String), message: ProcessImageMessage) {
+  let output_dir = "local/processed_images"
+
   let result = case message {
     TransformImage(image_path) -> {
       io.println("TransformImage (received): " <> image_path)
+
+      use _ <- result.try(
+        simplifile.create_directory_all(output_dir)
+        |> overwrite_error_with_string("error when creating output directory"),
+      )
 
       use input_image <- result.try(map_snag_to_string(image.read(image_path)))
       let width = image.get_width(input_image)
 
       use bounds <- result.try(
         int.divide(image.get_height(input_image) - width, 2)
-        |> map_error_to_string("error when calculating top of bounding box")
+        |> overwrite_error_with_string(
+          "error when calculating top of bounding box",
+        )
         |> result.try(fn(t) {
           map_snag_to_string(bounding_box.ltwh(0, t, width, width))
         }),
       )
       use scale <- result.try(
         float.divide(int.to_float(300), int.to_float(width))
-        |> map_error_to_string("error when calculating scaling factor"),
+        |> overwrite_error_with_string("error when calculating scaling factor"),
       )
       use file_name <- result.try(
         get_compact_date_for_image(image_path)
@@ -72,12 +81,14 @@ fn process_image(images: List(String), message: ProcessImageMessage) {
         |> result.try(fn(date_time) { Ok(date_time <> "0") }),
       )
 
-      let final_path = "local/processed_images/" <> file_name
-
       map_snag_to_string(image.extract_area(input_image, bounds))
       |> result.try(fn(i) { map_snag_to_string(image.scale(i, scale)) })
       |> result.try(fn(i) {
-        map_snag_to_string(image.write(i, final_path, image.JPEG(100, True)))
+        map_snag_to_string(image.write(
+          i,
+          output_dir <> "/" <> file_name,
+          image.JPEG(100, True),
+        ))
       })
     }
   }
