@@ -5,6 +5,7 @@ import app/internal/image_transform_actor
 import app/web
 import gleam/erlang/process
 import gleam/http
+import gleam/json
 import gleam/list
 import gleam/otp/actor
 import gleam/result
@@ -43,11 +44,23 @@ fn handle_image_upload(
 
     wisp.log_info("file uploaded to " <> path)
 
-    Ok(file.file_name)
+    Ok(Nil)
   }
 
   case result {
-    Ok(name) -> wisp.json_response(name, 200)
+    Ok(_) ->
+      wisp.json_response(
+        json.object([
+          #(
+            "message",
+            json.string(
+              "image uploaded and transformation triggered successfully",
+            ),
+          ),
+        ])
+          |> json.to_string,
+        200,
+      )
     Error(_) -> wisp.bad_request("invalid file or missing")
   }
 }
