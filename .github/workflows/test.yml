@@ -16,7 +16,7 @@ jobs:
           ssh-private-key: ${{ secrets.GLEXIF_DEPLOY_PRIVATE_KEY }}
       - uses: erlef/setup-beam@v1
         with:
-          otp-version: "28"
+          otp-version: "28.3"
           version-type: "strict"
           version-file: ".tool-versions"
           # gleam-version: "1.13.0"
