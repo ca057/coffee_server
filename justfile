@@ -10,7 +10,7 @@ dev-db:
   end
 
 dev-db-migrate: dev-db
-  dev-dev-dbmate --wait up
+  just dev-dbmate --wait up
 
 dev-squirrel:
   gleam run -m squirrel
