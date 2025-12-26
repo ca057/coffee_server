@@ -1,3 +1,6 @@
+_default:
+  @just --list
+
 [parallel]
 dev: dev-db-migrate dev-run dev-squirrel
 
