@@ -13,3 +13,4 @@ create table images (
 );
 
 -- migrate:down
+drop table images;
