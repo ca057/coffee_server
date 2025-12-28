@@ -28,3 +28,4 @@ glexif = { git= "git@github.com:ca057/glexif", ref = "e47dfe29b45b1811b3ec3e3fd9
 
 [dev-dependencies]
 gleeunit = ">= 1.0.0 and < 2.0.0"
+squirrel = ">= 4.6.0 and < 5.0.0"
