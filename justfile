@@ -1,5 +1,7 @@
 set dotenv-load
 
+local_db_url := "postgres://api:local@127.0.0.1:5432/nofilter?sslmode=disable"
+
 _default:
   @just --list
 
@@ -18,10 +20,10 @@ dev-db-migrate: dev-db
   just dev-dbmate --wait up
 
 dev-squirrel:
-  gleam run -m squirrel
+  DATABASE_URL={{local_db_url}} gleam run -m squirrel
 
 dev-dbmate *ARGUMENTS:
-  docker run --rm -it --network=host -v "$(pwd)/db:/db" ghcr.io/amacneil/dbmate --url "postgres://api:local@127.0.0.1:5432/nofilter?sslmode=disable" {{ARGUMENTS}}
+  docker run --rm -it --network=host -v "$(pwd)/db:/db" ghcr.io/amacneil/dbmate --url {{local_db_url}} {{ARGUMENTS}}
 
 dev-run:
   watchexec -rw src API_KEY=local INTERFACE=0.0.0.0 gleam run
