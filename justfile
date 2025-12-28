@@ -1,3 +1,5 @@
+set dotenv-load
+
 _default:
   @just --list
 
@@ -7,7 +9,7 @@ dev: dev-db-migrate dev-run dev-squirrel
 dev-db:
   #!/usr/bin/env fish
   if test -z (docker ps -aq -f name=coffee-server-db)
-    docker run -d --name coffee-server-db -e POSTGRES_PASSWORD=local -e POSTGRES_USER=api -e POSTGRES_DB=nofilter -p 5432:5432 postgres:15
+    docker run -d --name coffee-server-db -e POSTGRES_PASSWORD=local -e POSTGRES_USER=api -e POSTGRES_DB=nofilter -p 5432:5432 postgres:18
   else
     docker start $(docker ps -aq -f name=coffee-server-db)
   end
