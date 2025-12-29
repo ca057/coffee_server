@@ -5,9 +5,6 @@ local_db_url := "postgres://api:local@127.0.0.1:5432/nofilter?sslmode=disable"
 _default:
   @just --list
 
-[parallel]
-dev: dev-db-migrate dev-run dev-squirrel
-
 dev-db:
   #!/usr/bin/env fish
   if test -z (docker ps -aq -f name=coffee-server-db)
@@ -20,7 +17,7 @@ dev-db-migrate: dev-db
   just dev-dbmate --wait up
 
 dev-squirrel:
-  DATABASE_URL={{local_db_url}} gleam run -m squirrel
+  watchexec -rw src/sql DATABASE_URL={{local_db_url}} gleam run -m squirrel
 
 dev-dbmate *ARGUMENTS:
   docker run --rm -it --network=host -v "$(pwd)/db:/db" ghcr.io/amacneil/dbmate --url {{local_db_url}} {{ARGUMENTS}}

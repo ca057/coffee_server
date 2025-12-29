@@ -1,9 +1,20 @@
 import app/core/api_key
+import app/internal/image_transform_actor
+import gleam/erlang/process
 import gleam/json
 import gleam/list
 import gleam/result
 import gleam/string
+import pog
 import wisp
+
+pub type Context {
+  // TODO: fix this depenceny here, don’t want to expose the specific actor here
+  Context(
+    db: pog.Connection,
+    subject: process.Subject(image_transform_actor.ProcessImageMessage),
+  )
+}
 
 pub fn middleware(
   req: wisp.Request,
