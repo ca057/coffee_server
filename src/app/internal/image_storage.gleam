@@ -13,7 +13,7 @@ pub fn store_image(
   // TODO: add destination
   file_name file_name: String,
   // TODO: return custom type
-) -> Result(String, Nil) {
+) -> Result(String, String) {
   let app_dir = get_app_dir()
 
   let path = case simplifile.is_directory(app_dir) {
@@ -34,9 +34,9 @@ pub fn store_image(
 
       simplifile.copy_file(temp_source, final_path)
       |> result.map(fn(_) { final_path })
-      |> result.map_error(fn(_) { Nil })
+      |> result.map_error(simplifile.describe_error)
     }
-    Error(_) -> Error(Nil)
+    Error(error) -> Error("can’t create app_dir: " <> error)
   }
 }
 

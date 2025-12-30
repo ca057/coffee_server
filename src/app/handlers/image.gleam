@@ -51,14 +51,11 @@ fn handle_image_upload(
         case r.count {
           0 -> {
             // TODO: store image in DB
-            use path <- result.try(
-              image_storage.store_image(
-                source: file.path,
-                file_name: file.file_name,
-              )
-              // TODO: rollback image from DB
-              |> overwrite_error_with_string("error storing image"),
-            )
+            use path <- result.try(image_storage.store_image(
+              source: file.path,
+              file_name: file.file_name,
+              // TODO: rollback image from DB when writing fails
+            ))
 
             actor.send(subject, image_transform_actor.TransformImage(path))
 
