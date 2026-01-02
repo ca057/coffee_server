@@ -1,43 +1,73 @@
+import gleam/json
 import gleam/result
 import gleam/string
+import gleam/time/timestamp
+import pog
 import simplifile
+import sql
+import wisp
+
+pub type StoredImageError {
+  FileOperationError(String)
+  UnknownError
+}
 
 pub type StoredImage {
-  StoredImage(full_path: String, file_name: String)
+  StoredImage(db_key: String, full_path: String)
 }
 
 // TODO: error handling and logging!
 // TODO: store_image_if_not_exists
 pub fn store_image(
-  source temp_source: String,
-  // TODO: add destination
-  file_name file_name: String,
-  // TODO: return custom type
-) -> Result(String, String) {
+  db: pog.Connection,
+  file: wisp.UploadedFile,
+) -> Result(StoredImage, StoredImageError) {
   let app_dir = get_app_dir()
 
-  let path = case simplifile.is_directory(app_dir) {
+  use _ <- result.try(
+    sql.insert_image(
+      db,
+      file.file_name,
+      // TODO: fix me
+      timestamp.unix_epoch,
+      // TODO: fix me
+      json.int(1),
+    )
+    |> result.map_error(fn(_) { UnknownError })
+    |> result.try(fn(r) {
+      // TODO: make this faile when it already exist
+      case r.count {
+        1 -> {
+          Ok(Nil)
+        }
+        _ -> Error(UnknownError)
+      }
+    }),
+  )
+
+  use path <- result.try(case simplifile.is_directory(app_dir) {
     Ok(True) -> Ok(app_dir)
     _ -> {
       // TODO: separate errors
       case simplifile.create_directory_all(app_dir) {
         Ok(_) -> Ok(app_dir)
         Error(err) ->
-          Error("Failed to create app_dir: " <> simplifile.describe_error(err))
+          Error(FileOperationError(
+            "Failed to create app_dir: " <> simplifile.describe_error(err),
+          ))
       }
     }
-  }
+  })
+  let final_path = join_paths(path, file.file_name)
 
-  case path {
-    Ok(path) -> {
-      let final_path = join_paths(path, file_name)
-
-      simplifile.copy_file(temp_source, final_path)
-      |> result.map(fn(_) { final_path })
-      |> result.map_error(simplifile.describe_error)
-    }
-    Error(error) -> Error("can’t create app_dir: " <> error)
-  }
+  simplifile.copy_file(file.path, final_path)
+  |> result.map(fn(_) { StoredImage(file.file_name, final_path) })
+  |> result.map_error(fn(err) {
+    // TODO: rollback database when storing the file fails
+    FileOperationError(
+      "Failed to copy file: " <> simplifile.describe_error(err),
+    )
+  })
 }
 
 fn get_app_dir() -> String {

@@ -5,6 +5,7 @@
 ////
 
 import gleam/dynamic/decode
+import gleam/json.{type Json}
 import gleam/option.{type Option}
 import gleam/time/calendar.{type Date}
 import gleam/time/timestamp.{type Timestamp}
@@ -64,6 +65,33 @@ pub fn get_image(
 "
   |> pog.query
   |> pog.parameter(pog.text(arg_1))
+  |> pog.returning(decoder)
+  |> pog.execute(db)
+}
+
+/// Runs the `insert_image` query
+/// defined in `./src/sql/insert_image.sql`.
+///
+/// > 🐿️ This function was generated automatically using v4.6.0 of
+/// > the [squirrel package](https://github.com/giacomocavalieri/squirrel).
+///
+pub fn insert_image(
+  db: pog.Connection,
+  arg_1: String,
+  arg_2: Timestamp,
+  arg_3: Json,
+) -> Result(pog.Returned(Nil), pog.QueryError) {
+  let decoder = decode.map(decode.dynamic, fn(_) { Nil })
+
+  "insert into images
+  (original_filename, captured_at, original_metadata)
+values
+  ($1, $2, $3);
+"
+  |> pog.query
+  |> pog.parameter(pog.text(arg_1))
+  |> pog.parameter(pog.timestamp(arg_2))
+  |> pog.parameter(pog.text(json.to_string(arg_3)))
   |> pog.returning(decoder)
   |> pog.execute(db)
 }

@@ -26,13 +26,6 @@ pub fn handle_request(req: Request, ctx: web.Context) -> Response {
   }
 }
 
-fn overwrite_error_with_string(
-  message: String,
-) -> fn(Result(a, b)) -> Result(a, String) {
-  // TODO: get rid of this function
-  fn(a) { result.map_error(a, fn(_) { message }) }
-}
-
 fn handle_image_upload(
   req: Request,
   db: pog.Connection,
@@ -43,27 +36,34 @@ fn handle_image_upload(
   let result = {
     use file <- result.try(
       list.key_find(formdata.files, "image")
-      |> overwrite_error_with_string("cannot find image in request"),
+      |> fn(a) { result.map_error(a, fn(_) { "cannot find image in request" }) },
     )
 
     case sql.get_image(db, file.file_name) {
       Ok(r) -> {
         case r.count {
           0 -> {
-            // TODO: store image in DB
-            use path <- result.try(image_storage.store_image(
-              source: file.path,
-              file_name: file.file_name,
-              // TODO: rollback image from DB when writing fails
-            ))
+            use result <- result.try(
+              image_storage.store_image(db, file)
+              |> result.map_error(fn(err) {
+                case err {
+                  image_storage.FileOperationError(details) ->
+                    "storing the file failed: " <> details
+                  _ -> "storing the file failed for an unknown reason"
+                }
+              }),
+            )
 
-            actor.send(subject, image_transform_actor.TransformImage(path))
+            actor.send(
+              subject,
+              image_transform_actor.TransformImage(result.full_path),
+            )
 
-            wisp.log_info("file uploaded to " <> path)
+            wisp.log_info("file uploaded to " <> result.full_path)
 
             Ok(Nil)
           }
-          _ -> Error("image file already exists")
+          _ -> Error("image already exists")
         }
       }
       Error(_) -> Error("error querying if image exists")
