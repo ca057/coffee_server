@@ -27,6 +27,7 @@ snag = ">= 1.2.0 and < 2.0.0"
 glexif = { git= "git@github.com:ca057/glexif", ref = "e47dfe29b45b1811b3ec3e3fd9a41c06fb44277e" }
 gleam_time = ">= 1.6.0 and < 2.0.0"
 pog = ">= 4.1.0 and < 5.0.0"
+gleam_regexp = ">= 1.1.1 and < 2.0.0"
 
 [dev-dependencies]
 gleeunit = ">= 1.0.0 and < 2.0.0"

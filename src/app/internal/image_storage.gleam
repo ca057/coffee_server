@@ -1,7 +1,9 @@
 import gleam/json
+import gleam/option
 import gleam/result
 import gleam/string
 import gleam/time/timestamp
+import glexif
 import pog
 import simplifile
 import sql
@@ -28,8 +30,12 @@ pub fn store_image(
     sql.insert_image(
       db,
       file.file_name,
-      // TODO: fix me
-      timestamp.unix_epoch,
+      option.to_result(
+        glexif.get_exif_data_for_file(file.path).date_time_original,
+        Nil,
+      )
+        |> result.try(parse_date_time_original)
+        |> result.unwrap(timestamp.system_time()),
       // TODO: fix me
       json.int(1),
     )
@@ -68,6 +74,12 @@ pub fn store_image(
       "Failed to copy file: " <> simplifile.describe_error(err),
     )
   })
+}
+
+fn parse_date_time_original(
+  date_time_original: String,
+) -> Result(timestamp.Timestamp, Nil) {
+  timestamp.parse_rfc3339(date_time_original)
 }
 
 fn get_app_dir() -> String {

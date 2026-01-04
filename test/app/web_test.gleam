@@ -1,13 +1,8 @@
 import app/core/api_key
 import app/web
 import gleam/http
-import gleeunit
 import wisp
 import wisp/simulate
-
-pub fn main() {
-  gleeunit.main()
-}
 
 pub fn require_api_key_middleware_test() {
   let request = simulate.request(http.Get, "/")
