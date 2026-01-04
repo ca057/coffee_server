@@ -1,26 +1,29 @@
-set dotenv-load
+set dotenv-load := true
 
 local_db_url := "postgres://api:local@127.0.0.1:5432/nofilter?sslmode=disable"
 
 _default:
-  @just --list
+    @just --list
 
 dev-db:
-  #!/usr/bin/env fish
-  if test -z (docker ps -aq -f name=coffee-server-db)
-    docker run -d --name coffee-server-db -e POSTGRES_PASSWORD=local -e POSTGRES_USER=api -e POSTGRES_DB=nofilter -p 5432:5432 postgres:18
-  else
-    docker start $(docker ps -aq -f name=coffee-server-db)
-  end
+    #!/usr/bin/env fish
+    if test -z (docker ps -aq -f name=coffee-server-db)
+      docker run -d --name coffee-server-db -e POSTGRES_PASSWORD=local -e POSTGRES_USER=api -e POSTGRES_DB=nofilter -p 5432:5432 postgres:18
+    else
+      docker start $(docker ps -aq -f name=coffee-server-db)
+    end
 
 dev-db-migrate: dev-db
-  just dev-dbmate --wait up
+    just dev-dbmate --wait up
 
 dev-squirrel:
-  watchexec -rw src/sql DATABASE_URL={{local_db_url}} gleam run -m squirrel
+    watchexec -rw src/sql DATABASE_URL={{ local_db_url }} gleam run -m squirrel
 
 dev-dbmate *ARGUMENTS:
-  docker run --rm -it --network=host -v "$(pwd)/db:/db" ghcr.io/amacneil/dbmate --url {{local_db_url}} {{ARGUMENTS}}
+    docker run --rm -it --network=host -v "$(pwd)/db:/db" ghcr.io/amacneil/dbmate --url {{ local_db_url }} {{ ARGUMENTS }}
 
 dev-run:
-  watchexec -rw src API_KEY=local INTERFACE=0.0.0.0 gleam run
+    watchexec -rw src API_KEY=local INTERFACE=0.0.0.0 gleam run
+
+dev-test:
+    watchexec -rw test -w src gleam test
