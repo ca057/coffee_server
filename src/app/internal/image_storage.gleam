@@ -1,4 +1,4 @@
-import gleam/json
+import app/internal/lib/exif
 import gleam/option
 import gleam/result
 import gleam/string
@@ -26,18 +26,16 @@ pub fn store_image(
 ) -> Result(StoredImage, StoredImageError) {
   let app_dir = get_app_dir()
 
+  let exif_data = glexif.get_exif_data_for_file(file.path)
+
   use _ <- result.try(
     sql.insert_image(
       db,
       file.file_name,
-      option.to_result(
-        glexif.get_exif_data_for_file(file.path).date_time_original,
-        Nil,
-      )
-        |> result.try(parse_date_time_original)
+      option.to_result(exif_data.date_time_original, Nil)
+        |> result.try(exif.date_time_original_to_timestamp)
         |> result.unwrap(timestamp.system_time()),
-      // TODO: fix me
-      json.int(1),
+      exif.export_to_json(exif_data),
     )
     |> result.map_error(fn(_) { UnknownError })
     |> result.try(fn(r) {
@@ -74,12 +72,6 @@ pub fn store_image(
       "Failed to copy file: " <> simplifile.describe_error(err),
     )
   })
-}
-
-fn parse_date_time_original(
-  date_time_original: String,
-) -> Result(timestamp.Timestamp, Nil) {
-  timestamp.parse_rfc3339(date_time_original)
 }
 
 fn get_app_dir() -> String {

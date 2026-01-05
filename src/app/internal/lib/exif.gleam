@@ -1,8 +1,10 @@
+import gleam/json
 import gleam/list
 import gleam/option
 import gleam/regexp
 import gleam/result
 import gleam/time/timestamp
+import glexif/exif_tag
 
 pub fn date_time_original_to_timestamp(
   date_time_original: String,
@@ -35,4 +37,18 @@ pub fn date_time_original_to_timestamp(
       }
     })
   })
+}
+
+pub fn export_to_json(exif_data: exif_tag.ExifTagRecord) -> json.Json {
+  json.object([
+    #(
+      "date_time_original",
+      unwrap_option_with(exif_data.date_time_original, json.string, json.null()),
+    ),
+    //TODO
+  ])
+}
+
+fn unwrap_option_with(value: option.Option(a), with: fn(a) -> b, or: b) -> b {
+  option.unwrap(option.map(value, with), or)
 }
