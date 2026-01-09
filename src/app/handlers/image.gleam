@@ -20,7 +20,6 @@ pub fn handle_request(req: Request, ctx: web.Context) -> Response {
   )
 
   case req.method, wisp.path_segments(req) {
-    // TODO: find a better structure
     http.Put, ["images"] -> handle_image_upload(req, ctx.db, ctx.subject)
     _, _ -> web.respond_with_error("not found", 404)
   }
