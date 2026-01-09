@@ -1,4 +1,4 @@
-import app/internal/lib/exif
+import app/lib/exif
 import gleam/order
 import gleam/time/timestamp
 import gleeunit/should

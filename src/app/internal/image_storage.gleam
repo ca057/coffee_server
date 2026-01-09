@@ -1,4 +1,4 @@
-import app/internal/lib/exif
+import app/lib/exif
 import gleam/option
 import gleam/result
 import gleam/string
