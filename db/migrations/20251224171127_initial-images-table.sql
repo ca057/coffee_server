@@ -1,6 +1,6 @@
 -- migrate:up
 create table images (
-    original_filename text not null,
+    original_filename text primary key,
     captured_at timestamp not null,
     original_metadata jsonb not null,
     day date,
