@@ -11,6 +11,26 @@ import gleam/time/calendar.{type Date}
 import gleam/time/timestamp.{type Timestamp}
 import pog
 
+/// Runs the `delete_image` query
+/// defined in `./src/sql/delete_image.sql`.
+///
+/// > 🐿️ This function was generated automatically using v4.6.0 of
+/// > the [squirrel package](https://github.com/giacomocavalieri/squirrel).
+///
+pub fn delete_image(
+  db: pog.Connection,
+  arg_1: String,
+) -> Result(pog.Returned(Nil), pog.QueryError) {
+  let decoder = decode.map(decode.dynamic, fn(_) { Nil })
+
+  "delete from images where original_filename = $1;
+"
+  |> pog.query
+  |> pog.parameter(pog.text(arg_1))
+  |> pog.returning(decoder)
+  |> pog.execute(db)
+}
+
 /// A row you get from running the `get_image` query
 /// defined in `./src/sql/get_image.sql`.
 ///

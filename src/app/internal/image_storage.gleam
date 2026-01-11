@@ -39,7 +39,6 @@ pub fn store_image(
     )
     |> result.map_error(fn(_) { UnknownError })
     |> result.try(fn(r) {
-      // TODO: make this faile when it already exist
       case r.count {
         1 -> {
           Ok(Nil)
@@ -67,10 +66,17 @@ pub fn store_image(
   simplifile.copy_file(file.path, final_path)
   |> result.map(fn(_) { StoredImage(file.file_name, final_path) })
   |> result.map_error(fn(err) {
-    // TODO: rollback database when storing the file fails
-    FileOperationError(
-      "Failed to copy file: " <> simplifile.describe_error(err),
-    )
+    case sql.delete_image(db, file.file_name) {
+      Ok(_) ->
+        FileOperationError(
+          "Failed to copy file to storage: " <> simplifile.describe_error(err),
+        )
+      Error(_) ->
+        FileOperationError(
+          "Failed to copy file to storage and failed to rollback image from database: "
+          <> simplifile.describe_error(err),
+        )
+    }
   })
 }
 
