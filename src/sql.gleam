@@ -42,6 +42,7 @@ pub type GetImageRow {
     original_filename: String,
     captured_at: Timestamp,
     original_metadata: String,
+    local_path: String,
     day: Option(Date),
     sequence: Option(Int),
     public_filename: Option(String),
@@ -64,15 +65,17 @@ pub fn get_image(
     use original_filename <- decode.field(0, decode.string)
     use captured_at <- decode.field(1, pog.timestamp_decoder())
     use original_metadata <- decode.field(2, decode.string)
-    use day <- decode.field(3, decode.optional(pog.calendar_date_decoder()))
-    use sequence <- decode.field(4, decode.optional(decode.int))
-    use public_filename <- decode.field(5, decode.optional(decode.string))
-    use created_at <- decode.field(6, decode.optional(pog.timestamp_decoder()))
-    use updated_at <- decode.field(7, decode.optional(pog.timestamp_decoder()))
+    use local_path <- decode.field(3, decode.string)
+    use day <- decode.field(4, decode.optional(pog.calendar_date_decoder()))
+    use sequence <- decode.field(5, decode.optional(decode.int))
+    use public_filename <- decode.field(6, decode.optional(decode.string))
+    use created_at <- decode.field(7, decode.optional(pog.timestamp_decoder()))
+    use updated_at <- decode.field(8, decode.optional(pog.timestamp_decoder()))
     decode.success(GetImageRow(
       original_filename:,
       captured_at:,
       original_metadata:,
+      local_path:,
       day:,
       sequence:,
       public_filename:,
@@ -100,18 +103,20 @@ pub fn insert_image(
   arg_1: String,
   arg_2: Timestamp,
   arg_3: Json,
+  arg_4: String,
 ) -> Result(pog.Returned(Nil), pog.QueryError) {
   let decoder = decode.map(decode.dynamic, fn(_) { Nil })
 
   "insert into images
-  (original_filename, captured_at, original_metadata)
+  (original_filename, captured_at, original_metadata, local_path)
 values
-  ($1, $2, $3);
+  ($1, $2, $3, $4);
 "
   |> pog.query
   |> pog.parameter(pog.text(arg_1))
   |> pog.parameter(pog.timestamp(arg_2))
   |> pog.parameter(pog.text(json.to_string(arg_3)))
+  |> pog.parameter(pog.text(arg_4))
   |> pog.returning(decoder)
   |> pog.execute(db)
 }

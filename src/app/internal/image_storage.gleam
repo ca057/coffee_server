@@ -15,7 +15,7 @@ pub type StoredImageError {
 }
 
 pub type StoredImage {
-  StoredImage(db_key: String, full_path: String)
+  StoredImage(db_key: String, local_path: String)
 }
 
 // TODO: error handling and logging!
@@ -25,6 +25,20 @@ pub fn store_image(
   file: wisp.UploadedFile,
 ) -> Result(StoredImage, StoredImageError) {
   let app_dir = get_app_dir()
+
+  use path <- result.try(case simplifile.is_directory(app_dir) {
+    Ok(True) -> Ok(app_dir)
+    _ -> {
+      case simplifile.create_directory_all(app_dir) {
+        Ok(_) -> Ok(app_dir)
+        Error(err) ->
+          Error(FileOperationError(
+            "Failed to create app_dir: " <> simplifile.describe_error(err),
+          ))
+      }
+    }
+  })
+  let local_path = join_paths(path, file.file_name)
 
   let exif_data = glexif.get_exif_data_for_file(file.path)
 
@@ -36,9 +50,11 @@ pub fn store_image(
         |> result.try(exif.date_time_original_to_timestamp)
         |> result.unwrap(timestamp.system_time()),
       exif.export_to_json(exif_data),
+      local_path,
     )
     |> result.map_error(fn(_) { UnknownError })
     |> result.try(fn(r) {
+      echo r
       case r.count {
         1 -> {
           Ok(Nil)
@@ -48,23 +64,8 @@ pub fn store_image(
     }),
   )
 
-  use path <- result.try(case simplifile.is_directory(app_dir) {
-    Ok(True) -> Ok(app_dir)
-    _ -> {
-      // TODO: separate errors
-      case simplifile.create_directory_all(app_dir) {
-        Ok(_) -> Ok(app_dir)
-        Error(err) ->
-          Error(FileOperationError(
-            "Failed to create app_dir: " <> simplifile.describe_error(err),
-          ))
-      }
-    }
-  })
-  let final_path = join_paths(path, file.file_name)
-
-  simplifile.copy_file(file.path, final_path)
-  |> result.map(fn(_) { StoredImage(file.file_name, final_path) })
+  simplifile.copy_file(file.path, local_path)
+  |> result.map(fn(_) { StoredImage(file.file_name, local_path) })
   |> result.map_error(fn(err) {
     case sql.delete_image(db, file.file_name) {
       Ok(_) ->

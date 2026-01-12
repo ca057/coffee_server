@@ -3,6 +3,7 @@ create table images (
     original_filename text primary key,
     captured_at timestamp not null,
     original_metadata jsonb not null,
+    local_path text not null,
     day date,
     sequence int,
     public_filename text,
