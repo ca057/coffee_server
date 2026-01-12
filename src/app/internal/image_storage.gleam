@@ -15,7 +15,7 @@ pub type StoredImageError {
 }
 
 pub type StoredImage {
-  StoredImage(db_key: String, local_path: String)
+  StoredImage(id: String)
 }
 
 // TODO: error handling and logging!
@@ -65,7 +65,7 @@ pub fn store_image(
   )
 
   simplifile.copy_file(file.path, local_path)
-  |> result.map(fn(_) { StoredImage(file.file_name, local_path) })
+  |> result.map(fn(_) { StoredImage(file.file_name) })
   |> result.map_error(fn(err) {
     case sql.delete_image(db, file.file_name) {
       Ok(_) ->

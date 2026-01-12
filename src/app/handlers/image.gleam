@@ -53,12 +53,9 @@ fn handle_image_upload(
               }),
             )
 
-            actor.send(
-              subject,
-              image_transform_actor.TransformImage(result.db_key),
-            )
+            actor.send(subject, image_transform_actor.TransformImage(result.id))
 
-            wisp.log_debug("file uploaded with key: " <> result.db_key)
+            wisp.log_debug("file uploaded with key: " <> result.id)
 
             Ok(Nil)
           }
