@@ -38,16 +38,16 @@ pub fn main() -> Nil {
   let secret_key_base = wisp.random_string(64)
   let db_process_name = process.new_name("db")
 
+  let db_connection = pog.named_connection(db_process_name)
+
   let assert Ok(_) = start_application_supervisor(db_process_name)
   // TODO: move into supervisor
-  let assert Ok(image_processor_subject) = image_transform_actor.start()
+  let assert Ok(image_processor_subject) =
+    image_transform_actor.start(db_connection)
 
   let assert Ok(_) =
     wisp_mist.handler(
-      router.handle_request(web.Context(
-        pog.named_connection(db_process_name),
-        image_processor_subject,
-      )),
+      router.handle_request(web.Context(db_connection, image_processor_subject)),
       secret_key_base,
     )
     |> mist.new

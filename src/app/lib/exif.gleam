@@ -157,17 +157,7 @@ pub fn export_to_json(exif_data: exif_tag.ExifTagRecord) -> json.Json {
     ),
     #(
       "f_number",
-      unwrap_option_with(
-        exif_data.f_number,
-        fn(f_number) {
-          json.string(
-            int.to_string(f_number.numerator)
-            <> "/"
-            <> int.to_string(f_number.denominator),
-          )
-        },
-        json.null(),
-      ),
+      unwrap_option_with(exif_data.f_number, json.float, json.null()),
     ),
     #(
       "exposure_program",
@@ -247,32 +237,8 @@ pub fn export_to_json(exif_data: exif_tag.ExifTagRecord) -> json.Json {
       ),
     ),
     #(
-      "shutter_speed_value",
-      unwrap_option_with(
-        exif_data.shutter_speed_value,
-        fn(shutter_speed_value) {
-          json.string(
-            int.to_string(shutter_speed_value.numerator)
-            <> "/"
-            <> int.to_string(shutter_speed_value.denominator),
-          )
-        },
-        json.null(),
-      ),
-    ),
-    #(
       "aperature_value",
-      unwrap_option_with(
-        exif_data.aperature_value,
-        fn(aperature_value) {
-          json.string(
-            int.to_string(aperature_value.numerator)
-            <> "/"
-            <> int.to_string(aperature_value.denominator),
-          )
-        },
-        json.null(),
-      ),
+      unwrap_option_with(exif_data.aperture_value, json.float, json.null()),
     ),
     #(
       "brightness_value",
@@ -282,13 +248,7 @@ pub fn export_to_json(exif_data: exif_tag.ExifTagRecord) -> json.Json {
       "exposure_compensation",
       unwrap_option_with(
         exif_data.exposure_compensation,
-        fn(exposure_compensation) {
-          json.string(
-            int.to_string(exposure_compensation.numerator)
-            <> "/"
-            <> int.to_string(exposure_compensation.denominator),
-          )
-        },
+        json.float,
         json.null(),
       ),
     ),
@@ -372,29 +332,14 @@ pub fn export_to_json(exif_data: exif_tag.ExifTagRecord) -> json.Json {
       ),
     ),
     #(
-      "maker_data",
-      unwrap_option_with(
-        exif_data.maker_data,
-        fn(_) {
-          // TODO: Implement maker data serialization
-          json.null()
-        },
-        json.null(),
-      ),
-    ),
-    #(
       "sub_sec_time_original",
-      unwrap_option_with(
-        exif_data.sub_sec_time_original,
-        json.string,
-        json.null(),
-      ),
+      unwrap_option_with(exif_data.sub_sec_time_original, json.int, json.null()),
     ),
     #(
       "sub_sec_time_digitized",
       unwrap_option_with(
         exif_data.sub_sec_time_digitized,
-        json.string,
+        json.int,
         json.null(),
       ),
     ),
@@ -508,22 +453,6 @@ pub fn export_to_json(exif_data: exif_tag.ExifTagRecord) -> json.Json {
             scene_capture_type.Other -> "Other"
             scene_capture_type.Portrait -> "Portrait"
             scene_capture_type.Standard -> "Standard"
-          })
-        },
-        json.null(),
-      ),
-    ),
-    #(
-      "lens_info",
-      unwrap_option_with(
-        exif_data.lens_info,
-        fn(lens_info) {
-          json.array(lens_info, fn(lens) {
-            json.string(
-              int.to_string(lens.numerator)
-              <> "/"
-              <> int.to_string(lens.denominator),
-            )
           })
         },
         json.null(),
