@@ -23,7 +23,9 @@ dev-dbmate *ARGUMENTS:
     docker run --rm -it --network=host -v "$(pwd)/db:/db" ghcr.io/amacneil/dbmate --url {{ local_db_url }} {{ ARGUMENTS }}
 
 dev-run:
-    watchexec -rw src API_KEY=local INTERFACE=0.0.0.0 gleam run
+    # https://github.com/gleam-lang/gleam/issues/2710#issuecomment-1998256227
+    watchexec -r -e gleam -w src -- API_KEY=local INTERFACE=0.0.0.0 gleam run </dev/null
 
 dev-test:
-    watchexec -rw test -w src gleam test
+    # https://github.com/gleam-lang/gleam/issues/2710#issuecomment-1998256227
+    watchexec -r -w test -w src -- gleam test </dev/null
