@@ -11,6 +11,7 @@ import wisp
 
 pub type StoredImageError {
   FileOperationError(String)
+  ReadingExifError(String)
   UnknownError
 }
 
@@ -40,15 +41,23 @@ pub fn store_image(
   })
   let local_path = join_paths(path, file.file_name)
 
-  let exif_data = glexif.get_exif_data_for_file(file.path)
+  use exif_data <- result.try(
+    glexif.get_exif_data_for_file(file.path)
+    |> result.map_error(fn(e) { ReadingExifError(glexif.error_to_string(e)) }),
+  )
+
+  let date_time_original =
+    case exif_data.date_time_original {
+      option.Some(dto) -> exif.date_time_original_to_timestamp(dto)
+      _ -> Error(Nil)
+    }
+    |> result.lazy_unwrap(timestamp.system_time)
 
   use _ <- result.try(
     sql.insert_image(
       db,
       file.file_name,
-      option.to_result(exif_data.date_time_original, Nil)
-        |> result.try(exif.date_time_original_to_timestamp)
-        |> result.unwrap(timestamp.system_time()),
+      date_time_original,
       exif.export_to_json(exif_data),
       local_path,
     )

@@ -24,21 +24,28 @@ fn map_snag_to_string(r: Result(a, snag.Snag)) -> Result(a, String) {
   result.map_error(r, fn(e) { e.issue })
 }
 
-fn overwrite_error_with_string(
-  message: String,
-) -> fn(Result(a, b)) -> Result(a, String) {
-  fn(a) { result.map_error(a, fn(_) { message }) }
+fn overwrite_error_with_string(a, message: String) -> Result(a, String) {
+  result.map_error(a, fn(_) { message })
 }
 
 fn get_compact_date_for_image(path: String) -> Result(String, String) {
-  case glexif.get_exif_data_for_file(path).date_time_original {
-    option.Some(date_time) ->
-      string.split(date_time, " ")
-      |> list.first
-      |> result.try(fn(date) { Ok(string.concat(string.split(date, ":"))) })
-      |> overwrite_error_with_string(
-        "failed to constract date in ISO format for image at path: " <> path,
-      )
+  case glexif.get_exif_data_for_file(path) {
+    Ok(a) -> {
+      case a.date_time_original {
+        option.Some(date_time) ->
+          string.split(date_time, " ")
+          |> list.first
+          |> result.try(fn(date) { Ok(string.concat(string.split(date, ":"))) })
+          |> overwrite_error_with_string(
+            "failed to constract date in ISO format for image at path: " <> path,
+          )
+        _ ->
+          Error(
+            "failed to extract date_time_original from image at given path: "
+            <> path,
+          )
+      }
+    }
     _ ->
       Error(
         "failed to extract date_time_original from image at given path: "

@@ -92,11 +92,11 @@ pub fn export_to_json(exif_data: exif_tag.ExifTagRecord) -> json.Json {
     ),
     #(
       "x_resolution",
-      unwrap_option_with(exif_data.x_resolution, json.int, json.null()),
+      unwrap_option_with(exif_data.x_resolution, json.float, json.null()),
     ),
     #(
       "y_resolution",
-      unwrap_option_with(exif_data.y_resolution, json.int, json.null()),
+      unwrap_option_with(exif_data.y_resolution, json.float, json.null()),
     ),
     #(
       "resolution_unit",
@@ -333,13 +333,17 @@ pub fn export_to_json(exif_data: exif_tag.ExifTagRecord) -> json.Json {
     ),
     #(
       "sub_sec_time_original",
-      unwrap_option_with(exif_data.sub_sec_time_original, json.int, json.null()),
+      unwrap_option_with(
+        exif_data.sub_sec_time_original,
+        json.string,
+        json.null(),
+      ),
     ),
     #(
       "sub_sec_time_digitized",
       unwrap_option_with(
         exif_data.sub_sec_time_digitized,
-        json.int,
+        json.string,
         json.null(),
       ),
     ),
