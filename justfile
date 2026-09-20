@@ -1,9 +1,13 @@
-set dotenv-load := true
+set dotenv-load
 
 local_db_url := "postgres://api:local@127.0.0.1:5432/nofilter?sslmode=disable"
 
 _default:
     @just --list
+
+build:
+    mix local.hex --force
+    gleam build
 
 dev-db:
     #!/usr/bin/env fish
@@ -22,9 +26,9 @@ dev-squirrel:
 dev-dbmate *ARGUMENTS:
     docker run --rm -it --network=host -v "$(pwd)/db:/db" ghcr.io/amacneil/dbmate --url {{ local_db_url }} {{ ARGUMENTS }}
 
-dev-run:
+dev-run: build
     # https://github.com/gleam-lang/gleam/issues/2710#issuecomment-1998256227
-    watchexec -r -e gleam -w src -- API_KEY=local INTERFACE=0.0.0.0 gleam run </dev/null
+    API_KEY=local INTERFACE=0.0.0.0 watchexec -r -e gleam -w src -- gleam run </dev/null
 
 dev-test:
     # https://github.com/gleam-lang/gleam/issues/2710#issuecomment-1998256227
